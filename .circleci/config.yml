@@ -1,0 +1,84 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: echo "Installing dependencies..."
+      - run:
+          name: Build Application
+          command: echo "Running build steps..."
+
+  test:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Run Tests
+          command: echo "Executing tests..."
+      - run:
+          name: Verify Test Results
+          command: echo "All tests passed!"
+
+  test-parallel:
+    parallelism: 2
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Run Tests
+          command: echo "Executing tests..."
+      - run:
+          name: Verify Test Results
+          command: echo "All tests passed!"
+
+  deploy:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Deploy Application
+          command: echo "Deploying application..."
+      - run:
+          name: Confirm Deployment
+          command: echo "Deployment complete!"
+          deployment:
+            environment: production
+
+  end2end-test:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Run End-to-End Tests
+          command: echo "Running end-to-end tests..."
+
+workflows:
+  sample_pipeline:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - test-parallel:
+          requires:
+          - build
+      - hold:
+          type: approval
+          requires:
+            - test
+            - test-parallel
+      - deploy:
+          requires:
+            - hold
+      - end2end-test:
+          requires:
+            - deploy
